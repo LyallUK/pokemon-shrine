@@ -1,0 +1,124 @@
+@import url(pokemon-types.css);
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	margin: 0;
+	color: white;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	user-select: none;
+}
+
+#pokemon-container {
+	height: auto;
+	width: 100%;
+	padding: 40px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, 200px);
+	justify-content: space-around;
+	justify-items: center;
+	grid-auto-flow: dense;
+	gap: 10px;
+}
+
+.pokemon-tile {
+	position: relative;
+	height: 230px;
+	width: 200px;
+	padding: 10px;
+	display: grid;
+	justify-items: center;
+	align-items: center;
+	overflow: hidden;
+	transition: 0.3s ease;
+	opacity: 0;
+	border: 1px solid rgb(145, 145, 145);
+}
+
+.pokemon-tile::after {
+	content: "";
+	position: absolute;
+	height: 100%;
+	width: 100%;
+	background: linear-gradient(rgba(0, 0, 0, 0) 25%, rgba(255, 255, 255, 0.5));
+}
+
+.pokemon-tile:hover {
+	transform: scale(1.02);
+}
+
+.pokemon-number {
+	position: absolute;
+	top: 5px;
+	right: 10px;
+	font-size: smaller;
+	opacity: 0.6;
+}
+
+.pokemon-gen {
+	position: absolute;
+	top: 5px;
+	left: 10px;
+	font-size: smaller;
+	text-transform: uppercase;
+	font-family: "Times New Roman", Times, serif;
+	font-weight: bolder;
+	cursor: pointer;
+	transition: 0.3s;
+	opacity: 0.6;
+	z-index: 1;
+}
+
+.pokemon-gen:hover {
+	opacity: 1;
+}
+
+.pokemon-name {
+	text-transform: capitalize;
+	font-size: large;
+	font-weight: bolder;
+	letter-spacing: 1px;
+	text-shadow: 0 2px 3px rgba(0, 0, 0, 0.8);
+	cursor: default;
+	text-wrap: nowrap;
+	z-index: 1;
+}
+
+.type-container {
+	margin: 0;
+	z-index: 1;
+}
+
+.pokemon-type {
+	display: inline-block;
+	text-transform: uppercase;
+	font-size: x-small;
+	border: 1px solid rgb(255, 255, 255);
+	border-radius: 5px;
+	padding: 3px 5px;
+	margin-inline: 5px;
+	transition: filter 0.3s;
+	cursor: pointer;
+}
+
+.pokemon-type:hover {
+	filter: brightness(1.1) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
+}
+
+.pokemon-sprite {
+	position: relative;
+	width: 150px;
+	aspect-ratio: 1;
+	transition: 0.2s;
+	object-fit: fill;
+	z-index: 1;
+}
