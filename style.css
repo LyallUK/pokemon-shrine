@@ -49,6 +49,7 @@ body {
 	transition: 0.3s ease;
 	opacity: 0;
 	border: 1px solid rgb(145, 145, 145);
+	z-index: 0;
 }
 
 .pokemon-tile::after {
@@ -57,6 +58,7 @@ body {
 	height: 100%;
 	width: 100%;
 	background: linear-gradient(rgba(0, 0, 0, 0) 25%, rgba(255, 255, 255, 0.5));
+	z-index: 0;
 }
 
 .pokemon-tile:hover {
@@ -69,6 +71,7 @@ body {
 	right: 10px;
 	font-size: smaller;
 	opacity: 0.6;
+	z-index: 1;
 }
 
 .pokemon-gen {
@@ -99,7 +102,7 @@ body {
 	z-index: 1;
 }
 
-.type-container {
+.pokemon-types {
 	margin: 0;
 	z-index: 1;
 }
@@ -114,6 +117,7 @@ body {
 	margin-inline: 5px;
 	transition: filter 0.3s;
 	cursor: pointer;
+	z-index: 1;
 }
 
 .pokemon-type:hover {
