@@ -1,5 +1,31 @@
-async function getPokemonData(idOrName) {
+const pokemonCache = {};
+
+function checkCache(idOrName) {
+	// if is id, lookup by id (constant-time lookup)
+	const isId = isNumber(idOrName);
+
+	if (isId) {
+		if (pokemonCache[idOrName]) {
+			return pokemonCache[idOrName];
+		}
+	}
+
+	// else, its a name, so lookup by id (constant-time lookup)
+	const arrOfValues = Object.values(pokemonCache);
+
+	for (let i = 0; i < arrOfValues.length; i++) {
+		if (arrOfValues[i].name === idOrName) {
+			return arrOfValues[i]; // FOUND THE POKEMON IN THE CACHE BY NAME
+		}
+	}
+}
+
+async function getPokemonData(idOrName, withCache) {
 	try {
+		if (withCache && pokemonCache[idOrName]) {
+			return pokemonCache[idOrName];
+		}
+
 		const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${idOrName}/`);
 		const speciesData = await speciesResponse.json();
 
@@ -16,6 +42,9 @@ async function getPokemonData(idOrName) {
 			type: pokemonData.types.map((type) => type.type.name),
 		};
 
+		if (withCache && !pokemonCache[pokemonObject.id]) {
+			pokemonCache[pokemonObject.id] = pokemonObject;
+		}
 		return pokemonObject;
 	} catch (error) {
 		console.error("Error fetching data:", error);
@@ -29,8 +58,7 @@ function applyFadeInEffect(element, delay) {
 	}, 20 * delay);
 }
 
-async function createPokemonData(i) {
-	const pokemonObject = await getPokemonData(i);
+async function createPokemonData(pokemonObject, renderDelay = 1) {
 	const rootStyles = getComputedStyle(document.documentElement);
 	const pokemonContainer = document.getElementById("pokemon-container");
 
@@ -76,40 +104,43 @@ async function createPokemonData(i) {
 	pokemonContainer.appendChild(pokemonDiv);
 
 	// Apply fade-in effect
-	applyFadeInEffect(pokemonDiv, i);
+	applyFadeInEffect(pokemonDiv, renderDelay);
 }
 
+// REVIEW: do i need idOrName arg anymore?
 async function displayPokemonData(idOrName) {
+	const pokemonContainer = document.getElementById("pokemon-container");
+	pokemonContainer.innerHTML = "";
 	const displayAmount = 1025;
 
 	if (!idOrName) {
 		for (let i = 1; i < displayAmount + 1; i++) {
 			try {
-				await createPokemonData(i);
+				const pokemon = await getPokemonData(i, true);
+				await createPokemonData(pokemon, i);
 			} catch (error) {
 				console.error("Error displaying Pokemon:", error);
 			}
 		}
 	} else {
+		// REVIEW: delete me?
 		// Fetch and display data for the searched Pokémon
 		try {
-			const pokemon = await getPokemonData(idOrName);
-			await createPokemonData(pokemon.id);
+			const pokemon = await getPokemonData(idOrName, true);
+			await createPokemonData(pokemon);
 		} catch (error) {
 			console.error("Error displaying Pokemon:", error);
 		}
 	}
 }
 
+function isNumber(value) {
+	return value == Number.parseInt(value);
+}
+
 displayPokemonData();
 
 const searchBar = document.getElementById("search-bar");
-
-function handleSearchBar(event) {
-	if (searchBar.value == Number.parseInt(searchBar.value)) {
-		console.log("Its a number");
-	} else console.log("Its a word");
-}
 
 searchBar.addEventListener("keydown", async function (event) {
 	if (event.key === "Enter") {
@@ -122,8 +153,13 @@ searchBar.addEventListener("keydown", async function (event) {
 			displayPokemonData();
 		} else {
 			try {
-				const pokemon = await getPokemonData(searchValue);
-				await createPokemonData(pokemon.id);
+				const cachedPokemon = checkCache(searchValue);
+				if (cachedPokemon) {
+					await createPokemonData(cachedPokemon);
+				} else {
+					const pokemon = await getPokemonData(searchValue, true);
+					await createPokemonData(pokemon);
+				}
 			} catch (error) {
 				console.error("Error displaying Pokemon:", error);
 				pokemonContainer.innerHTML = `<p class="error">Pokémon not found!</p>`;

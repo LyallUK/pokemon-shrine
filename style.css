@@ -31,12 +31,14 @@ input:focus {
 	margin: 20px 50px;
 }
 .logo {
+	position: absolute;
+	left: 50px;
 	height: 35px;
 }
 
 #search-bar {
 	margin: auto;
-	left: calc(50% - width);
+	position: relative;
 	width: 25vw;
 	border: none;
 	padding: 10px;
