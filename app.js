@@ -80,7 +80,7 @@ async function createPokemonData(i) {
 }
 
 async function displayPokemonData(idOrName) {
-	const displayAmount = 100;
+	const displayAmount = 1025;
 
 	if (!idOrName) {
 		for (let i = 1; i < displayAmount + 1; i++) {

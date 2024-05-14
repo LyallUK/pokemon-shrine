@@ -14,15 +14,35 @@
 body {
 	margin: 0;
 	color: white;
+	background-color: rgb(245, 245, 245);
 	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 	user-select: none;
 }
 
-#header {
-	margin: 10px 50px;
+textarea:focus,
+input:focus {
+	outline: none;
 }
-.title {
-	color: black;
+
+#header {
+	display: flex;
+	align-items: center;
+	/* justify-content: space-evenly; */
+	margin: 20px 50px;
+}
+.logo {
+	height: 35px;
+}
+
+#search-bar {
+	margin: auto;
+	left: calc(50% - width);
+	width: 25vw;
+	border: none;
+	padding: 10px;
+	border-radius: 35px;
+	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+	align-self: center;
 }
 
 #pokemon-container {
