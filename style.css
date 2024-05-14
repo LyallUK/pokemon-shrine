@@ -132,3 +132,29 @@ body {
 	object-fit: fill;
 	z-index: 1;
 }
+
+.error {
+	position: absolute;
+	top: 50%;
+	color: rgb(211, 211, 211);
+	text-transform: uppercase;
+	font-weight: bolder;
+	font-size: 4rem;
+	animation: FadeIn 1s ease-out;
+}
+
+@keyframes FadeIn {
+	0% {
+		opacity: 0;
+		transform: translateY(0px);
+	}
+	20% {
+		transform: translateY(-30px);
+	}
+	50% {
+		opacity: 1;
+		transform: translateY(0px);
+	}
+	100% {
+	}
+}
