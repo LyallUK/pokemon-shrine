@@ -5,7 +5,7 @@ function fetchAndRenderPokemonInBatch(startIndex, batchSize) {
 	// Loop through the batch size and fetch/render Pokemon data
 	for (let i = startIndex; i < startIndex + batchSize; i++) {
 		const promise = new Promise((resolve, reject) => {
-			fetchPokemonData(i, 31)
+			fetchPokemonData(i)
 				.then(() => {
 					resolve(); // Resolve the promise once the element is rendered
 				})
@@ -46,26 +46,20 @@ function fetchPokemonData(pokemonID) {
 }
 
 // Function to render Pokemon data
-function renderPokemon(data) {
+async function renderPokemon(data) {
 	const rootStyles = getComputedStyle(document.documentElement);
 	const container = document.getElementById("pokemon-container");
 	const pokemonID = data.id;
 	const pokemonName = data.species.name;
-	const pokemonGen = findGeneration(data.sprites.versions);
+	const pokemonGen = await findPokemonGeneration(pokemonName);
 	const pokemonsSprite = data.sprites.other["official-artwork"];
 	const pokemonTypes = data.types.map((i) => i.type.name);
 
 	const tileDiv = document.createElement("div");
 	tileDiv.id = pokemonName;
 	tileDiv.className = "pokemon-tile";
-
 	const typeColor = rootStyles.getPropertyValue(`--${pokemonTypes[0]}`);
-
-	if (typeColor.includes("gradient")) {
-		tileDiv.style.background = typeColor;
-	} else {
-		tileDiv.style.background = typeColor;
-	}
+	tileDiv.style.background = typeColor;
 
 	const tileNumber = document.createElement("span");
 	tileNumber.className = "pokemon-number";
@@ -130,16 +124,34 @@ function fetchAndRenderInBatches(startIndex) {
 
 fetchAndRenderInBatches(1); // Start fetching and rendering from index 1
 
-function findGeneration(versions) {
-	for (const key in versions) {
-		if (versions[key] !== null && typeof versions[key] === "object") {
-			const result = findGeneration(versions[key]);
-			if (result !== null) {
-				return key.replace(/^generation-/i, ""); // Remove "generation-" from the key
-			}
-		} else if (versions[key] !== null) {
-			return key.replace(/^generation-/i, ""); // Remove "generation-" from the key
+async function findPokemonGeneration(pokemonName) {
+	try {
+		// Fetching the list of all generations
+		const response = await fetch("https://pokeapi.co/api/v2/generation/");
+		if (!response.ok) {
+			throw new Error(`HTTP error! Status: ${response.status}`);
 		}
+		const data = await response.json();
+
+		// Iterate over each generation
+		for (const generation of data.results) {
+			const generationResponse = await fetch(generation.url);
+			if (!generationResponse.ok) {
+				throw new Error(
+					`HTTP error! Status: ${generationResponse.status}`
+				);
+			}
+			const generationData = await generationResponse.json();
+
+			// Check if the given Pokémon is found in the current generation
+			const foundPokemon = generationData.pokemon_species.find(
+				(pokemon) => pokemon.name === pokemonName
+			);
+			if (foundPokemon) {
+				return generation.name.replace("generation-", "");
+			}
+		}
+	} catch (error) {
+		console.error("Error:", error);
 	}
-	return null;
 }

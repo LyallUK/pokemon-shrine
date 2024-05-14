@@ -18,10 +18,17 @@ body {
 	user-select: none;
 }
 
+#header {
+	margin: 10px 50px;
+}
+.title {
+	color: black;
+}
+
 #pokemon-container {
 	height: auto;
 	width: 100%;
-	padding: 40px;
+	padding: 10px 40px;
 	display: grid;
 	grid-template-columns: repeat(auto-fit, 200px);
 	justify-content: space-around;
@@ -84,7 +91,6 @@ body {
 
 .pokemon-name {
 	text-transform: capitalize;
-	font-size: large;
 	font-weight: bolder;
 	letter-spacing: 1px;
 	text-shadow: 0 2px 3px rgba(0, 0, 0, 0.8);
