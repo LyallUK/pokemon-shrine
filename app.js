@@ -5,7 +5,6 @@ function checkCache(searchValue) {
 
 	const arrOfValues = Object.values(pokemonCache);
 
-	// Loop through each cached Pokemon and check if its name contains the search value
 	arrOfValues.forEach((pokemon) => {
 		if (pokemon.name.includes(searchValue)) {
 			matchingPokemon.push(pokemon);
@@ -90,7 +89,13 @@ async function createPokemonData(pokemonObject, renderDelay = 1) {
 		pokemonTypes.appendChild(pokemonType);
 	});
 
-	// Append elements to DOM
+	if (pokemonObject.legendary) {
+		pokemonDiv.classList.add("legendary");
+	}
+	if (pokemonObject.mythic) {
+		pokemonDiv.classList.add("mythic");
+	}
+
 	pokemonDiv.appendChild(pokemonID);
 	pokemonDiv.appendChild(pokemonName);
 	pokemonDiv.appendChild(pokemonGen);
@@ -100,6 +105,10 @@ async function createPokemonData(pokemonObject, renderDelay = 1) {
 
 	// Apply fade-in effect
 	applyFadeInEffect(pokemonDiv, renderDelay);
+
+	pokemonDiv.addEventListener("click", () => {
+		console.log(pokemonObject);
+	});
 }
 
 // REVIEW: do i need idOrName arg anymore?
@@ -118,8 +127,6 @@ async function displayPokemonData(idOrName) {
 			}
 		}
 	} else {
-		// REVIEW: delete me?
-		// Fetch and display data for the searched Pokémon
 		try {
 			const pokemon = await getPokemonData(idOrName, true);
 			await createPokemonData(pokemon);

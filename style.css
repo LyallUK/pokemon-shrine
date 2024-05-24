@@ -25,10 +25,14 @@ input:focus {
 }
 
 #header {
+	position: sticky;
+	top: 0;
 	display: flex;
 	align-items: center;
-	/* justify-content: space-evenly; */
-	margin: 20px 50px;
+	padding: 20px 50px;
+	background: linear-gradient(white, rgb(225, 225, 225));
+	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+	z-index: 1;
 }
 .logo {
 	position: absolute;
@@ -179,4 +183,12 @@ input:focus {
 	}
 	100% {
 	}
+}
+
+.legendary {
+	color: black;
+}
+
+.mythic {
+	color: black;
 }
