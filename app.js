@@ -1,23 +1,18 @@
 const pokemonCache = {};
 
-function checkCache(idOrName) {
-	// if is id, lookup by id (constant-time lookup)
-	const isId = isNumber(idOrName);
+function checkCache(searchValue) {
+	const matchingPokemon = [];
 
-	if (isId) {
-		if (pokemonCache[idOrName]) {
-			return pokemonCache[idOrName];
-		}
-	}
-
-	// else, its a name, so lookup by id (constant-time lookup)
 	const arrOfValues = Object.values(pokemonCache);
 
-	for (let i = 0; i < arrOfValues.length; i++) {
-		if (arrOfValues[i].name === idOrName) {
-			return arrOfValues[i]; // FOUND THE POKEMON IN THE CACHE BY NAME
+	// Loop through each cached Pokemon and check if its name contains the search value
+	arrOfValues.forEach((pokemon) => {
+		if (pokemon.name.includes(searchValue)) {
+			matchingPokemon.push(pokemon);
 		}
-	}
+	});
+
+	return matchingPokemon;
 }
 
 async function getPokemonData(idOrName, withCache) {
@@ -154,9 +149,13 @@ searchBar.addEventListener("keydown", async function (event) {
 		} else {
 			try {
 				const cachedPokemon = checkCache(searchValue);
-				if (cachedPokemon) {
-					await createPokemonData(cachedPokemon);
+				if (cachedPokemon.length > 0) {
+					// If partial matches found in cache, create data for each matching Pokemon
+					cachedPokemon.forEach(async (pokemon) => {
+						await createPokemonData(pokemon);
+					});
 				} else {
+					// If no partial matches found in cache, fetch data from API
 					const pokemon = await getPokemonData(searchValue, true);
 					await createPokemonData(pokemon);
 				}
