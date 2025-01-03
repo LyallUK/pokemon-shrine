@@ -1,87 +1,104 @@
-const pokemonCache = {};
+// Load pokemonCache from local storage if available
+const pokemonCache = JSON.parse(localStorage.getItem("pokemonCache")) || {};
 
-function checkCache(searchValue) {
-	const matchingPokemon = [];
-
-	const arrOfValues = Object.values(pokemonCache);
-
-	arrOfValues.forEach((pokemon) => {
-		if (pokemon.name.includes(searchValue)) {
-			matchingPokemon.push(pokemon);
-		}
-	});
-
-	return matchingPokemon;
+// Helper function to save pokemonCache to local storage
+function savePokemonCacheToLocalStorage() {
+	localStorage.setItem("pokemonCache", JSON.stringify(pokemonCache));
 }
 
-async function getPokemonData(idOrName, withCache) {
+// Helper function to fetch data from API
+async function fetchData(url) {
 	try {
-		if (withCache && pokemonCache[idOrName]) {
-			return pokemonCache[idOrName];
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
 		}
-
-		const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${idOrName}/`);
-		const speciesData = await speciesResponse.json();
-
-		const pokemonResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${idOrName}/`);
-		const pokemonData = await pokemonResponse.json();
-
-		const pokemonObject = {
-			id: speciesData.id,
-			name: speciesData.name,
-			generation: speciesData.generation,
-			sprite: pokemonData.sprites.other["official-artwork"].front_default,
-			legendary: speciesData.is_legendary,
-			mythic: speciesData.is_mythical,
-			type: pokemonData.types.map((type) => type.type.name),
-		};
-
-		if (withCache && !pokemonCache[pokemonObject.id]) {
-			pokemonCache[pokemonObject.id] = pokemonObject;
-		}
-		return pokemonObject;
+		return await response.json();
 	} catch (error) {
 		console.error("Error fetching data:", error);
 		throw error;
 	}
 }
 
-function applyFadeInEffect(element, delay) {
-	setTimeout(() => {
-		element.style.opacity = 1;
-	}, 20 * delay);
+// Function to get Pokémon data by ID or name, with optional caching
+async function getPokemonData(idOrName, withCache = true) {
+	try {
+		// Check if data is in cache
+		if (withCache && pokemonCache[idOrName]) {
+			return pokemonCache[idOrName];
+		}
+
+		// Fetch species and Pokémon data from API
+		const speciesData = await fetchData(`https://pokeapi.co/api/v2/pokemon-species/${idOrName}/`);
+		const pokemonData = await fetchData(`https://pokeapi.co/api/v2/pokemon/${idOrName}/`);
+
+		// Fetch and convert sprite image to base64
+		const spriteUrl = pokemonData.sprites.other["official-artwork"].front_default;
+		const spriteResponse = await fetch(spriteUrl);
+		const spriteBlob = await spriteResponse.blob();
+		const spriteBase64 = await new Promise((resolve) => {
+			const reader = new FileReader();
+			reader.onloadend = () => resolve(reader.result);
+			reader.readAsDataURL(spriteBlob);
+		});
+
+		// Create Pokémon object with relevant details
+		const pokemonObject = {
+			id: speciesData.id,
+			name: speciesData.name,
+			generation: speciesData.generation.name.replace("generation-", ""),
+			sprite: spriteBase64,
+			legendary: speciesData.is_legendary,
+			mythic: speciesData.is_mythical,
+			type: pokemonData.types.map((type) => type.type.name),
+		};
+
+		// Cache the data if caching is enabled
+		if (withCache) {
+			pokemonCache[idOrName] = pokemonObject;
+			savePokemonCacheToLocalStorage(); // Save cache to local storage
+		}
+		return pokemonObject;
+	} catch (error) {
+		console.error("Error fetching Pokémon data:", error);
+		throw error;
+	}
 }
 
-async function createPokemonData(pokemonObject, renderDelay = 1) {
-	const rootStyles = getComputedStyle(document.documentElement);
-	const pokemonContainer = document.getElementById("pokemon-container");
-
+// Function to create a Pokémon element for display
+function createPokemonElement(pokemonObject, rootStyles) {
 	const pokemonDiv = document.createElement("div");
 	pokemonDiv.id = pokemonObject.name;
 	pokemonDiv.classList = "pokemon-tile";
 
+	// Set background color based on Pokémon type
 	const typeColor = rootStyles.getPropertyValue(`--${pokemonObject.type[0]}`);
 	pokemonDiv.style.background = typeColor;
 
+	// Create and append Pokémon ID element
 	const pokemonID = document.createElement("span");
 	pokemonID.classList = "pokemon-number";
 	pokemonID.innerText = `#${pokemonObject.id}`;
 
+	// Create and append Pokémon name element
 	const pokemonName = document.createElement("span");
 	pokemonName.classList = "pokemon-name";
 	pokemonName.innerText = pokemonObject.name;
 
+	// Create and append Pokémon generation element
 	const pokemonGen = document.createElement("span");
 	pokemonGen.classList = "pokemon-gen";
-	pokemonGen.innerText = pokemonObject.generation.name.replace("generation-", "");
+	pokemonGen.innerText = pokemonObject.generation;
 
+	// Create and append Pokémon sprite element
 	const pokemonSprite = document.createElement("img");
 	pokemonSprite.classList = "pokemon-sprite";
 	pokemonSprite.src = pokemonObject.sprite;
+	pokemonSprite.loading = "lazy"; // Lazy load the image
 
+	// Create and append Pokémon types element
 	const pokemonTypes = document.createElement("div");
 	pokemonTypes.classList = "pokemon-types";
-
 	pokemonObject.type.forEach((typeName) => {
 		const pokemonType = document.createElement("span");
 		pokemonType.classList.add("pokemon-type", `${typeName.toLowerCase()}`);
@@ -89,6 +106,7 @@ async function createPokemonData(pokemonObject, renderDelay = 1) {
 		pokemonTypes.appendChild(pokemonType);
 	});
 
+	// Add classes for legendary and mythical Pokémon
 	if (pokemonObject.legendary) {
 		pokemonDiv.classList.add("legendary");
 	}
@@ -96,80 +114,94 @@ async function createPokemonData(pokemonObject, renderDelay = 1) {
 		pokemonDiv.classList.add("mythic");
 	}
 
-	pokemonDiv.appendChild(pokemonID);
-	pokemonDiv.appendChild(pokemonName);
-	pokemonDiv.appendChild(pokemonGen);
-	pokemonDiv.appendChild(pokemonTypes);
-	pokemonDiv.appendChild(pokemonSprite);
-	pokemonContainer.appendChild(pokemonDiv);
+	// Append all elements to the Pokémon div
+	pokemonDiv.append(pokemonID, pokemonName, pokemonGen, pokemonTypes, pokemonSprite);
+	return pokemonDiv;
+}
 
-	// Apply fade-in effect
-	applyFadeInEffect(pokemonDiv, renderDelay);
+// Function to render a Pokémon card
+async function renderPokemonCard(pokemonObject) {
+	const rootStyles = getComputedStyle(document.documentElement);
+	const pokemonContainer = document.getElementById("pokemon-container");
+	const pokemonDiv = createPokemonElement(pokemonObject, rootStyles);
 
+	if (!pokemonContainer) {
+		console.error("pokemon-container element not found");
+		return;
+	}
+
+	// Add click event listener to log Pokémon object
 	pokemonDiv.addEventListener("click", () => {
 		console.log(pokemonObject);
 	});
+
+	// Add delay before appending the Pokémon tile
+	await new Promise((resolve) => setTimeout(resolve, 10));
+
+	pokemonContainer.appendChild(pokemonDiv);
 }
 
-// REVIEW: do i need idOrName arg anymore?
+// Wait for the DOM to be fully loaded before running the code
+document.addEventListener("DOMContentLoaded", () => {
+	// Initial call to display Pokémon data
+	displayPokemonData();
+
+	// Event listener to focus the search bar when any key is pressed
+	document.addEventListener("keydown", function () {
+		const searchBar = document.getElementById("search-bar");
+		searchBar.focus();
+	});
+});
+
+// Function to display Pokémon data
 async function displayPokemonData(idOrName) {
 	const pokemonContainer = document.getElementById("pokemon-container");
 	pokemonContainer.innerHTML = "";
-	const displayAmount = 1025;
 
+	const displayAmount = 1025; // Number of Pokémon to display
 	if (!idOrName) {
-		for (let i = 1; i < displayAmount + 1; i++) {
+		// Display all Pokémon
+		for (let i = 1; i <= displayAmount; i++) {
 			try {
 				const pokemon = await getPokemonData(i, true);
-				await createPokemonData(pokemon, i);
+				await renderPokemonCard(pokemon, i);
 			} catch (error) {
-				console.error("Error displaying Pokemon:", error);
+				console.error("Error displaying Pokémon:", error);
 			}
 		}
 	} else {
+		// Display specific Pokémon
 		try {
 			const pokemon = await getPokemonData(idOrName, true);
-			await createPokemonData(pokemon);
+			await renderPokemonCard(pokemon);
 		} catch (error) {
-			console.error("Error displaying Pokemon:", error);
+			console.error("Error displaying Pokémon:", error);
+			pokemonContainer.innerHTML = `<p class="error">Pokémon not found!</p>`;
 		}
 	}
 }
 
-function isNumber(value) {
-	return value == Number.parseInt(value);
+// Function to download cached Pokémon data as JSON
+function downloadDataAsJson() {
+	try {
+		const jsonData = JSON.stringify(pokemonCache, null, 2);
+		const blob = new Blob([jsonData], { type: "application/json" });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "pokemon-data.json";
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+		console.log("Download initiated successfully.");
+	} catch (error) {
+		console.error("Error initiating download:", error);
+	}
 }
 
-displayPokemonData();
-
-const searchBar = document.getElementById("search-bar");
-
-searchBar.addEventListener("keydown", async function (event) {
-	if (event.key === "Enter") {
-		const searchValue = event.target.value.trim().toLowerCase();
-		const pokemonContainer = document.getElementById("pokemon-container");
-
-		pokemonContainer.innerHTML = "";
-
-		if (searchBar.value === "") {
-			displayPokemonData();
-		} else {
-			try {
-				const cachedPokemon = checkCache(searchValue);
-				if (cachedPokemon.length > 0) {
-					// If partial matches found in cache, create data for each matching Pokemon
-					cachedPokemon.forEach(async (pokemon) => {
-						await createPokemonData(pokemon);
-					});
-				} else {
-					// If no partial matches found in cache, fetch data from API
-					const pokemon = await getPokemonData(searchValue, true);
-					await createPokemonData(pokemon);
-				}
-			} catch (error) {
-				console.error("Error displaying Pokemon:", error);
-				pokemonContainer.innerHTML = `<p class="error">Pokémon not found!</p>`;
-			}
-		}
-	}
+// Event listener to focus search bar on keydown
+document.addEventListener("keydown", function () {
+	const searchBar = document.getElementById("search-bar");
+	searchBar.focus();
 });

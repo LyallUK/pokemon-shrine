@@ -4,9 +4,6 @@
 *::before,
 *::after {
 	box-sizing: border-box;
-}
-
-* {
 	margin: 0;
 	padding: 0;
 }
@@ -24,6 +21,10 @@ input:focus {
 	outline: none;
 }
 
+img {
+	-webkit-user-drag: none;
+}
+
 #header {
 	position: sticky;
 	top: 0;
@@ -34,6 +35,7 @@ input:focus {
 	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
 	z-index: 1;
 }
+
 .logo {
 	position: absolute;
 	left: 50px;
@@ -49,6 +51,7 @@ input:focus {
 	border-radius: 35px;
 	box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
 	align-self: center;
+	text-transform: capitalize;
 }
 
 #pokemon-container {
@@ -72,8 +75,8 @@ input:focus {
 	justify-items: center;
 	align-items: center;
 	overflow: hidden;
-	transition: 0.3s ease;
-	opacity: 0;
+	transition: transform 0.3s ease, opacity 0.3s ease;
+	animation: fadeIn 1s;
 	border: 1px solid rgb(145, 145, 145);
 	z-index: 0;
 }
@@ -91,27 +94,35 @@ input:focus {
 	transform: scale(1.02);
 }
 
-.pokemon-number {
-	position: absolute;
-	top: 5px;
-	right: 10px;
-	font-size: smaller;
-	opacity: 0.6;
+.pokemon-number,
+.pokemon-gen,
+.pokemon-name,
+.pokemon-types,
+.pokemon-type,
+.pokemon-sprite {
 	z-index: 1;
 }
 
+.pokemon-number,
 .pokemon-gen {
 	position: absolute;
+	font-size: smaller;
+	opacity: 0.6;
+}
+
+.pokemon-number {
+	top: 5px;
+	right: 10px;
+}
+
+.pokemon-gen {
 	top: 5px;
 	left: 10px;
-	font-size: smaller;
 	text-transform: uppercase;
 	font-family: "Times New Roman", Times, serif;
 	font-weight: bolder;
 	cursor: pointer;
-	transition: 0.3s;
-	opacity: 0.6;
-	z-index: 1;
+	transition: opacity 0.3s;
 }
 
 .pokemon-gen:hover {
@@ -124,13 +135,11 @@ input:focus {
 	letter-spacing: 1px;
 	text-shadow: 0 2px 3px rgba(0, 0, 0, 0.8);
 	cursor: default;
-	text-wrap: nowrap;
-	z-index: 1;
+	white-space: nowrap;
 }
 
 .pokemon-types {
 	margin: 0;
-	z-index: 1;
 }
 
 .pokemon-type {
@@ -143,7 +152,6 @@ input:focus {
 	margin-inline: 5px;
 	transition: filter 0.3s;
 	cursor: pointer;
-	z-index: 1;
 }
 
 .pokemon-type:hover {
@@ -154,9 +162,8 @@ input:focus {
 	position: relative;
 	width: 150px;
 	aspect-ratio: 1;
-	transition: 0.2s;
+	transition: transform 0.2s;
 	object-fit: fill;
-	z-index: 1;
 }
 
 .error {
@@ -166,10 +173,10 @@ input:focus {
 	text-transform: uppercase;
 	font-weight: bolder;
 	font-size: 4rem;
-	animation: FadeIn 1s ease-out;
+	animation: fadeIn 1s ease-out;
 }
 
-@keyframes FadeIn {
+@keyframes fadeIn {
 	0% {
 		opacity: 0;
 		transform: translateY(0px);
@@ -186,9 +193,7 @@ input:focus {
 }
 
 .legendary {
-	color: black;
 }
 
 .mythic {
-	color: black;
 }

@@ -6,6 +6,6 @@ The PokéShrine Pokémon index was a small project I started to test styling ele
 
 ## How Does It Work?
 
-With use of the [PokéAPI](https://pokeapi.co/) Pokémon API, a database has been created listing every pokémon within each of the games, this inlcudes the generation they belong to and what pokémon type they are.
+With use of [PokéAPI](https://pokeapi.co/) (Pokémon API), a database has been created listing every pokémon within each of the games, this inlcudes the generation they belong to and what pokémon type they are.
 
 ![alt text](preview.png)
