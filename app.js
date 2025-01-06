@@ -141,18 +141,6 @@ async function renderPokemonCard(pokemonObject) {
 	pokemonContainer.appendChild(pokemonDiv);
 }
 
-// Wait for the DOM to be fully loaded before running the code
-document.addEventListener("DOMContentLoaded", () => {
-	// Initial call to display Pokémon data
-	displayPokemonData();
-
-	// Event listener to focus the search bar when any key is pressed
-	document.addEventListener("keydown", function () {
-		const searchBar = document.getElementById("search-bar");
-		searchBar.focus();
-	});
-});
-
 // Function to display Pokémon data
 async function displayPokemonData(idOrName) {
 	const pokemonContainer = document.getElementById("pokemon-container");
@@ -174,6 +162,12 @@ async function displayPokemonData(idOrName) {
 		try {
 			const pokemon = await getPokemonData(idOrName, true);
 			await renderPokemonCard(pokemon);
+
+			// Scroll to the Pokémon element
+			const pokemonElement = document.getElementById(pokemon.name);
+			if (pokemonElement) {
+				pokemonElement.scrollIntoView({ behavior: "smooth" });
+			}
 		} catch (error) {
 			console.error("Error displaying Pokémon:", error);
 			pokemonContainer.innerHTML = `<p class="error">Pokémon not found!</p>`;
@@ -181,27 +175,31 @@ async function displayPokemonData(idOrName) {
 	}
 }
 
-// Function to download cached Pokémon data as JSON
-function downloadDataAsJson() {
-	try {
-		const jsonData = JSON.stringify(pokemonCache, null, 2);
-		const blob = new Blob([jsonData], { type: "application/json" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = "pokemon-data.json";
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
-		console.log("Download initiated successfully.");
-	} catch (error) {
-		console.error("Error initiating download:", error);
-	}
-}
+displayPokemonData();
 
-// Event listener to focus search bar on keydown
-document.addEventListener("keydown", function () {
-	const searchBar = document.getElementById("search-bar");
+const searchBar = document.getElementById("search-bar");
+
+document.addEventListener("keypress", function (event) {
 	searchBar.focus();
+});
+
+searchBar.addEventListener("keyup", function (event) {
+	const searchValue = searchBar.value.toLowerCase();
+	if (event.key === "Enter") {
+		const pokemonElement = document.getElementById(searchValue);
+		if (pokemonElement) {
+			pokemonElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+			// Remove the highlight class after the animation ends
+			pokemonElement.classList.add("highlight");
+			setTimeout(() => {
+				pokemonElement.classList.remove("highlight");
+			}, 3000); // 3 seconds
+
+			searchBar.value = "";
+			searchBar.blur();
+		} else {
+			console.error("Pokémon not found!");
+		}
+	}
 });
